@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"container/heap"
 	"flag"
 	"fmt"
 	"io"
@@ -24,11 +25,46 @@ func main() {
 		fmt.Print("File not found")
 		return
 	}
-	fmt.Print(charCountMap["t"])
+
+	pq := createHuffmanPartialTreeQueue(charCountMap)
+
+	createHuffManTreeFromPq(&pq)
+	printTree(heap.Pop(&pq).(*HuffmanNode))
+
+}
+
+func printTree(item *HuffmanNode) {
+	fmt.Printf("Element: %s, Weight: %d, is leaf %t \n", item.element, item.weight, item.isLeaf)
+	if item.left != nil {
+		printTree(item.left)
+	}
+	if item.right != nil {
+		printTree(item.right)
+	}
+}
+
+func createHuffManTreeFromPq(pq *PriorityQueue) {
+	for pq.Len() > 1 {
+		item1 := heap.Pop(pq).(*HuffmanNode)
+		item2 := heap.Pop(pq).(*HuffmanNode)
+		newNode := &HuffmanNode{weight: item1.weight + item2.weight, isLeaf: false, left: item1, right: item2}
+		heap.Push(pq, newNode)
+	}
+}
+
+func createHuffmanPartialTreeQueue(charCountMap map[string]int) PriorityQueue {
+	pq := make(PriorityQueue, 0)
+	heap.Init(&pq)
+	for character, occurence := range charCountMap {
+		node := &HuffmanNode{weight: occurence, element: character, isLeaf: true}
+		heap.Push(&pq, node)
+	}
+	return pq
 }
 
 func countCharacters(file *os.File) (map[string]int, error) {
 	charCountMap := make(map[string]int)
+
 	reader := bufio.NewReader(file)
 	for {
 		r, _, err := reader.ReadRune()
