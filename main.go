@@ -29,17 +29,20 @@ func main() {
 	pq := createHuffmanPartialTreeQueue(charCountMap)
 
 	createHuffManTreeFromPq(&pq)
-	printTree(heap.Pop(&pq).(*HuffmanNode))
+	lookupMap := make(map[string]string, len(charCountMap))
+	populateLookupMap(heap.Pop(&pq).(*HuffmanNode), "", lookupMap)
 
 }
 
-func printTree(item *HuffmanNode) {
-	fmt.Printf("Element: %s, Weight: %d, is leaf %t \n", item.element, item.weight, item.isLeaf)
+func populateLookupMap(item *HuffmanNode, code string, lookupMap map[string]string) {
+	if item.isLeaf {
+		lookupMap[item.element] = code
+	}
 	if item.left != nil {
-		printTree(item.left)
+		populateLookupMap(item.left, code+"0", lookupMap)
 	}
 	if item.right != nil {
-		printTree(item.right)
+		populateLookupMap(item.right, code+"1", lookupMap)
 	}
 }
 
@@ -63,6 +66,7 @@ func createHuffmanPartialTreeQueue(charCountMap map[string]int) PriorityQueue {
 }
 
 func countCharacters(file *os.File) (map[string]int, error) {
+
 	charCountMap := make(map[string]int)
 
 	reader := bufio.NewReader(file)
