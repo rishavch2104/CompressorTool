@@ -32,10 +32,30 @@ func main() {
 	createHuffManTreeFromPq(&pq)
 	lookupMap := make(map[string]string, len(charCountMap))
 	populateLookupMap(heap.Pop(&pq).(*HuffmanNode), "", lookupMap)
-	addLookupMapToOutputFile(outputFileName, lookupMap)
+	encodedData, err := getEncodedData(lookupMap, file)
+	if err != nil {
+		fmt.Print("File not found")
+		return
+	}
+	addDataToOutputFile(outputFileName, lookupMap, encodedData)
 }
 
-func addLookupMapToOutputFile(fileName string, lookupMap map[string]string) error {
+func getEncodedData(lookupMap map[string]string, inputFile *os.File) ([]byte, error) {
+	reader := bufio.NewReader(inputFile)
+	var encoded []byte
+	for {
+		r, _, err := reader.ReadRune()
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			return nil, err
+		}
+		encoded = append(encoded, []byte(lookupMap[string(r)])...)
+	}
+	return encoded, nil
+}
+
+func addDataToOutputFile(fileName string, lookupMap map[string]string, encodedData []byte) error {
 	file, err := os.OpenFile(fileName, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		return err
@@ -49,6 +69,8 @@ func addLookupMapToOutputFile(fileName string, lookupMap map[string]string) erro
 		}
 	}
 	file.WriteString("Header Section end \n")
+	file.WriteString("Encoded text section start \n")
+	file.Write(encodedData)
 	return nil
 
 }
