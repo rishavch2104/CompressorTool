@@ -13,6 +13,7 @@ func main() {
 	flag.Parse()
 
 	fileName := flag.Args()[0]
+	outputFileName := flag.Args()[1]
 
 	file, err := os.Open(fileName)
 	if err != nil {
@@ -31,6 +32,24 @@ func main() {
 	createHuffManTreeFromPq(&pq)
 	lookupMap := make(map[string]string, len(charCountMap))
 	populateLookupMap(heap.Pop(&pq).(*HuffmanNode), "", lookupMap)
+	addLookupMapToOutputFile(outputFileName, lookupMap)
+}
+
+func addLookupMapToOutputFile(fileName string, lookupMap map[string]string) error {
+	file, err := os.OpenFile(fileName, os.O_RDWR|os.O_CREATE, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	file.WriteString("Header Section start \n")
+	for character, encoding := range lookupMap {
+		_, err = file.WriteString(character + ":" + encoding + "\n")
+		if err != nil {
+			return err
+		}
+	}
+	file.WriteString("Header Section end \n")
+	return nil
 
 }
 
@@ -80,4 +99,5 @@ func countCharacters(file *os.File) (map[string]int, error) {
 		charCountMap[string(r)]++
 	}
 	return charCountMap, nil
+
 }
