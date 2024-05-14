@@ -2,7 +2,7 @@ package main
 
 type HuffmanNode struct {
 	weight  int
-	element string
+	element rune
 	isLeaf  bool
 	left    *HuffmanNode
 	right   *HuffmanNode
